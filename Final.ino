@@ -15,15 +15,15 @@ Ticker watchdogTicker;
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 const int relay1 = 5;
-const int relay2 = 18;
+const int relay2 = 15;
 const int relay3 = 19;
-const int relay4 = 17;
+const int relay4 = 4;
 
 const int sc_pin = 16;
 const int s1_pin = 23;
 const int s2_pin = 25;
-const int s3_pin = 2;
-const int s4_pin = 4;
+const int s3_pin = 26;
+const int s4_pin = 17;
 
 bool socket1State = false;
 bool socket2State = false;
@@ -222,7 +222,7 @@ void loop() {
         if (elapsedTime >= timerDuration) {
             timerRunning = false;
             Serial.println("Timer expired!");
-            controlSocket(timerRelay, false); // Turn OFF the socket
+            controlSocket(timerRelay, false); 
             Serial.printf("Socket %d turned OFF due to timer expiration\n", timerRelay);
             timerSocketId = 0;
             timerDeviceId = "";
@@ -270,7 +270,7 @@ void setupRoutes() {
         server.send(200, "text/plain", WiFi.status() == WL_CONNECTED ?
                    WiFi.localIP().toString() : WiFi.softAPIP().toString());
     });
-    server.on("/setTimer", HTTP_GET, handleSetTimer); // Add route for setting the timer
+    server.on("/setTimer", HTTP_GET, handleSetTimer); 
     server.onNotFound([]() {
         String uri = server.uri();
         addLog("NOT FOUND: " + uri);
@@ -572,9 +572,12 @@ void updateLCD() {
     if (remainingTime > 0) {
         lcd.clear();
         lcd.setCursor(0, 0);
-        lcd.print("Socket ");
-        lcd.print(timerRelay);
-        lcd.print(" Timer");
+        String displayName = timerDeviceId.length() > 0 ? timerDeviceId : "Socket " + String(timerRelay);
+        if (displayName.length() > 16) {
+            displayName = displayName.substring(0, 13) + "...";
+        }
+        lcd.print(displayName);
+        
         lcd.setCursor(0, 1);
         String timeStr = formatTime(remainingTime);
         int padding = (16 - timeStr.length()) / 2;  
@@ -586,7 +589,6 @@ void updateLCD() {
         timerExpired();
     }
 }
-
 void displayDefaultScreen() {
     lcd.clear();
     lcd.setCursor(0, 0);
